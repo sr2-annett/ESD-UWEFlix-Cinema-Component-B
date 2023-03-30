@@ -18,6 +18,8 @@ from django.contrib.auth.models import Group
 from django.contrib import messages
 from django.http import Http404
 from django.utils import timezone
+from django.http import JsonResponse
+
 
 def account_modify(request):
     form = SelectUserForm()
@@ -247,24 +249,34 @@ def add_screen(request):
     context['selected_screen'] = selected_screen
     return render(request, 'uweflix/add_screen.html', context)
 
-
 def add_showing(request):
     context = {}
     form = addShowingForm
-    showings = Showing.objects.all()
-    options = [showing.id for showing in showings]
-    if showings:
-        context['options'] = options
+    showings = Showing.objects.all().order_by('film__title', 'time')
+    context = {
+        'showings': showings,
+    }
     if request.method == "POST":
         form = addShowingForm(request.POST)
         if form.is_valid():
-            id = form.cleaned_data['id']
             screen = form.cleaned_data['screen']
             film = form.cleaned_data['film']
             time = form.cleaned_data['time']
-            Showing.newShowing(screen,film,time)
+            existing_showing = Showing.objects.filter(screen=screen, time__date=time.date(), time__time=time.time())
+
+            if existing_showing.exists():
+                return JsonResponse({'success': False, 'message': 'Error: Showing already live at this time on this screen'})
+            else:
+                Showing.newShowing(screen, film, time)
+                return JsonResponse({'success': True, 'message': 'Showing added successfully'})
+    else:
+        messages.error(request, 'Error adding the showing. Please check the form for any mistakes.')
+        form = addShowingForm()
     context['form'] = form
+    context['showings'] = showings
+
     return render(request, 'uweflix/add_showing.html', context)
+
 
 def edit_showing(request, showing_id):
     form = editShowingForm()
@@ -279,7 +291,7 @@ def edit_showing(request, showing_id):
             if time is not None:
                 showing.screen = screen
                 showing.film = film
-                showing.time = time       
+                showing.time = time
                 if form.is_valid():
                     form.save()
                 showing.save()
@@ -293,6 +305,15 @@ def edit_showing(request, showing_id):
     context['form'] = form
     return render(request, 'uweflix/edit_showing.html', context)
 
+def delete_showing(request, showing_id):
+    if request.method == 'POST':
+        showing = get_object_or_404(Showing, id=showing_id)
+        showing.delete()
+        messages.success(request, 'Showing deleted successfully!')
+        return render(request, 'uweflix/add_showing.html', {})
+    else:
+        return redirect('/')
+        
 def registerPage(request):
     form = CustomUserCreationForm()
     customer_form = RegisterStudentForm()
