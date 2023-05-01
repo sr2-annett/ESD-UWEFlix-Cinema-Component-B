@@ -9,6 +9,8 @@ import datetime
 import random
 
 
+
+
 from django.forms import ValidationError
 
 class User(AbstractUser):
@@ -210,6 +212,10 @@ class Showing(models.Model):
             showing.delete()
         except:
             print("This film Showing has Successfully been deleted.")
+            
+    def __str__(self):
+        formatted_time = self.time.strftime("%Y-%m-%d %H:%M:%S")
+        return f"{self.film.title} - {formatted_time}"
 
 
 class Ticket(models.Model):  # Individual ticket booking database
