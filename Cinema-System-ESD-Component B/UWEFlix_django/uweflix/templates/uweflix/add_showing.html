@@ -32,12 +32,9 @@ Add a showing
 
 
     $(document).ready(function () {
-        console.log("Document is ready");
 
         $("#selected-showing").on("change", function () {
-            console.log("Selected showing changed");
             var selectedValue = $(this).val();
-            console.log("Selected value inside the change event:", selectedValue);
 
             updateShowingLink(selectedValue);
         });
@@ -48,20 +45,15 @@ Add a showing
 
 
         function updateShowingLink(selectedValue) {
-            console.log('updateShowingLink() called');
-            console.log($("#selected-showing"));
+
             var selectedShowingElement = $("#selected-showing option:selected");
-            console.log("Selected value: ", selectedShowingElement.val());
             if (selectedValue !== 'no-results') {
                 selectedValue = $("#selected-showing").val();
-                console.log('Selected value: ', selectedValue);
                 var editShowingLink = $('#edit-showing-link');
                 var href = "{% url 'edit_showing' showing_id=1 %}".replace('1', selectedValue);
                 editShowingLink.attr('href', href);
                 $('#show-id-field').val(selectedValue);
-                console.log('Href: ', href);
             } else {
-                console.log('No option selected');
                 $('#edit-showing-link').removeAttr('href');
                 $('#show-id-field').val('');
             }
@@ -72,7 +64,6 @@ Add a showing
             var selectedShowingElement = document.getElementById("selected-showing");
             if (selectedShowingElement !== 'no-results') {
                 selectedShowingElement = $("#selected-showing").val();
-                console.log('Selected value: ', selectedShowingElement);
                 var url = deleteShowingUrlTemplate.replace('1', selectedShowingElement);
 
                 $.post(url, { csrfmiddlewaretoken: "{{ csrf_token }}", showing_id: selectedShowingElement })
